@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latihan Soal H5P Saya</title>
+    <title>Latihan Soal H5P Saya & Firebase</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
             text-align: center;
-            background-color: #f4f4f4; /* Sedikit sentuhan warna latar */
+            background-color: #f4f4f4;
         }
         .h5p-container {
-            max-width: 900px; /* Lebar maksimum yang sedikit disesuaikan untuk iframe 1090px */
-            margin: 20px auto; /* Margin atas/bawah 20px, auto untuk tengah */
+            max-width: 900px;
+            margin: 20px auto;
             border: 1px solid #ddd;
             padding: 15px;
             background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Efek bayangan ringan */
-            border-radius: 8px; /* Sudut membulat */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
         h1 {
             color: #333;
@@ -26,6 +26,15 @@
         p {
             color: #666;
             line-height: 1.6;
+        }
+        #firebase-data {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e0f7fa;
+            border: 1px solid #b2ebf2;
+            border-radius: 8px;
+            font-style: italic;
+            color: #00796b;
         }
     </style>
 </head>
@@ -39,6 +48,60 @@
     </div>
 
     <p>Semoga bermanfaat dan selamat belajar!</p>
+
+    <div id="firebase-data">
+        Memuat data dari Firebase...
+    </div>
+
+    <script type="module">
+        // Import fungsi yang dibutuhkan dari SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js"; // <--- TAMBAHAN UNTUK FIRESTORE
+
+        // Konfigurasi Firebase aplikasi web Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyDDu5-EB1ffqERcshhMx5Pum50UtTCREK8",
+            authDomain: "latihan-soal-h5p-alfa.firebaseapp.com",
+            projectId: "latihan-soal-h5p-alfa",
+            storageBucket: "latihan-soal-h5p-alfa.firebasestorage.app",
+            messagingSenderId: "1073603932253",
+            appId: "1:1073603932253:web:13140e4de86d110725db4",
+            measurementId: "G-CF3LXMC1MY"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app); // Jika kamu menggunakan Analytics
+
+        // Inisialisasi Firestore
+        const db = getFirestore(app); // <--- INI CARA INISIALISASI FIRESTORE DI VERSI MODULAR
+
+        // Mendapatkan elemen untuk menampilkan data
+        const firebaseDataElement = document.getElementById('firebase-data');
+
+        // Mengambil data dari Firestore
+        async function fetchFirebaseData() {
+            try {
+                // Pastikan kamu sudah membuat koleksi 'messages' dan dokumen 'first_message' di Firebase Console
+                const docRef = doc(db, "messages", "first_message");
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    firebaseDataElement.textContent = "Pesan dari Firebase: " + docSnap.data().text;
+                } else {
+                    firebaseDataElement.textContent = "Dokumen 'first_message' tidak ditemukan di koleksi 'messages' di Firestore!";
+                }
+            } catch (error) {
+                console.error("Error mengambil dokumen dari Firestore:", error);
+                firebaseDataElement.textContent = "Error memuat data dari Firebase: " + error.message;
+            }
+        }
+
+        // Panggil fungsi untuk mengambil data saat halaman dimuat
+        fetchFirebaseData();
+
+    </script>
 
 </body>
 </html>
