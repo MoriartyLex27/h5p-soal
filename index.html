@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latihan Soal H5P Saya & Firebase</title>
+    <title>Latihan Soal Interaktif Saya</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
             text-align: center;
-            background-color: #f4f4f4;
+            background-color: #f4f4f4; /* Sedikit sentuhan warna latar */
         }
         .h5p-container {
-            max-width: 900px;
-            margin: 20px auto;
+            max-width: 900px; /* Lebar maksimum yang sedikit disesuaikan untuk iframe 1000px */
+            margin: 20px auto; /* Margin atas/bawah 20px, auto untuk tengah */
             border: 1px solid #ddd;
-            padding: 15px;
+            padding: 10px;
             background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Efek bayangan ringan */
+            border-radius: 8px; /* Sudut membulat */
         }
         h1 {
             color: #333;
@@ -27,14 +27,14 @@
             color: #666;
             line-height: 1.6;
         }
-        #firebase-data {
+        .firebase-message {
             margin-top: 30px;
-            padding: 20px;
-            background-color: #e0f7fa;
-            border: 1px solid #b2ebf2;
-            border-radius: 8px;
-            font-style: italic;
+            padding: 15px;
+            background-color: #e0f7fa; /* Warna latar cerah */
+            border-left: 5px solid #00bcd4; /* Garis biru tosca */
             color: #00796b;
+            font-weight: bold;
+            text-align: center;
         }
     </style>
 </head>
@@ -43,65 +43,122 @@
     <p>Mari kita coba latihan soal interaktif di bawah ini yang dibuat dengan H5P:</p>
 
     <div class="h5p-container">
-        <iframe src="https://h5p.org/h5p/embed/1531670" width="1090" height="377" frameborder="0" allowfullscreen="allowfullscreen" allow="geolocation *; microphone *; camera *; midi *; encrypted-media *" title="Latihan Soal 1"></iframe>
+        <iframe
+            id="h5p-iframe"
+            src="https://h5p.org/h5p/embed/1531670"
+            width="100%"
+            height="377"
+            frameborder="0"
+            allowfullscreen="allowfullscreen"
+            scrolling="no"
+            title="Question Set"
+        ></iframe>
         <script src="https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js" charset="UTF-8"></script>
     </div>
 
     <p>Semoga bermanfaat dan selamat belajar!</p>
 
-    <div id="firebase-data">
-        Memuat data dari Firebase...
+    <div id="firebase-output" class="firebase-message">
+        Mengambil pesan dari Firebase...
     </div>
 
     <script type="module">
-        // Import fungsi yang dibutuhkan dari SDKs
+        // Import modul Firebase yang dibutuhkan
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js"; // <--- TAMBAHAN UNTUK FIRESTORE
+        import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase aplikasi web Anda
+        // Konfigurasi Firebase Anda (SESUAIKAN DENGAN PUNYAMU!)
         const firebaseConfig = {
             apiKey: "AIzaSyDDu5-EB1ffqERcshhMx5Pum50UtTCREK8",
             authDomain: "latihan-soal-h5p-alfa.firebaseapp.com",
             projectId: "latihan-soal-h5p-alfa",
             storageBucket: "latihan-soal-h5p-alfa.firebasestorage.app",
             messagingSenderId: "1073603932253",
-            appId: "1:1073603932253:web:13140e4de86d110725db4",
+            appId: "1:1073603932253:web:13140de4de86d110725db4",
             measurementId: "G-CF3LXMC1MY"
         };
 
         // Inisialisasi Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app); // Jika kamu menggunakan Analytics
+        const db = getFirestore(app);
 
-        // Inisialisasi Firestore
-        const db = getFirestore(app); // <--- INI CARA INISIALISASI FIRESTORE DI VERSI MODULAR
-
-        // Mendapatkan elemen untuk menampilkan data
-        const firebaseDataElement = document.getElementById('firebase-data');
-
-        // Mengambil data dari Firestore
-        async function fetchFirebaseData() {
+        // Fungsi untuk mengambil data dari Firestore dan menampilkannya
+        async function fetchFirebaseMessage() {
             try {
-                // Pastikan kamu sudah membuat koleksi 'messages' dan dokumen 'first_message' di Firebase Console
                 const docRef = doc(db, "messages", "first_message");
                 const docSnap = await getDoc(docRef);
+                const firebaseOutput = document.getElementById("firebase-output");
 
                 if (docSnap.exists()) {
-                    firebaseDataElement.textContent = "Pesan dari Firebase: " + docSnap.data().text;
+                    firebaseOutput.textContent = `Pesan dari Firebase: ${docSnap.data().text}`;
                 } else {
-                    firebaseDataElement.textContent = "Dokumen 'first_message' tidak ditemukan di koleksi 'messages' di Firestore!";
+                    firebaseOutput.textContent = "Pesan dari Firebase: Dokumen tidak ditemukan.";
                 }
             } catch (error) {
-                console.error("Error mengambil dokumen dari Firestore:", error);
-                firebaseDataElement.textContent = "Error memuat data dari Firebase: " + error.message;
+                console.error("Error fetching document:", error);
+                document.getElementById("firebase-output").textContent = "Gagal mengambil pesan dari Firebase.";
             }
         }
 
-        // Panggil fungsi untuk mengambil data saat halaman dimuat
-        fetchFirebaseData();
+        // Panggil fungsi saat halaman dimuat
+        fetchFirebaseMessage();
 
+        // --- Bagian untuk Integrasi H5P dengan Firebase ---
+
+        // Fungsi untuk mengirim data H5P ke Firestore
+        async function sendH5PResultToFirestore(resultData) {
+            try {
+                // Gunakan nama koleksi yang berbeda untuk hasil H5P, misalnya "h5p_results"
+                const docRef = await addDoc(collection(db, "h5p_results"), {
+                    timestamp: serverTimestamp(), // Waktu server saat data diterima
+                    userAgent: navigator.userAgent, // Informasi browser pengguna
+                    ...resultData // Data hasil H5P yang dikirim
+                });
+                console.log("H5P result successfully written with ID: ", docRef.id);
+            } catch (e) {
+                console.error("Error adding H5P result document: ", e);
+            }
+        }
+
+        // Dengarkan pesan dari iframe H5P
+        window.addEventListener('message', function(event) {
+            // Penting: Selalu validasi event.origin untuk keamanan!
+            // Hanya terima pesan dari domain H5P yang Anda harapkan.
+            if (event.origin !== "https://h5p.org") { // SESUAIKAN DENGAN DOMAIN H5P ANDA!
+                return;
+            }
+
+            // Periksa apakah data event adalah objek yang diharapkan H5P
+            if (event.data && event.data.context && event.data.context.action && event.data.statement) {
+                const statement = event.data.statement;
+                console.log("H5P Statement Received:", statement);
+
+                // Contoh: Mendapatkan skor dari kuis H5P
+                if (statement.verb && statement.verb.id === "http://adlnet.gov/expapi/verbs/answered" &&
+                    statement.result && statement.result.score) {
+                    const score = statement.result.score.scaled; // Skor dalam skala 0-1
+                    const rawScore = statement.result.score.raw; // Skor mentah
+                    const maxScore = statement.result.score.max; // Skor maksimum
+                    const completion = statement.result.completion; // Apakah aktivitas selesai
+                    const success = statement.result.success; // Apakah berhasil (mis. lulus)
+                    const activityId = statement.object.id; // ID aktivitas H5P (misalnya URL konten)
+
+                    console.log(`H5P Quiz Score: ${rawScore}/${maxScore} (Scaled: ${score}), Completed: ${completion}, Success: ${success}`);
+
+                    // Kirim data ini ke Firestore
+                    sendH5PResultToFirestore({
+                        h5pActivityId: activityId,
+                        score: rawScore,
+                        maxScore: maxScore,
+                        scaledScore: score,
+                        completed: completion,
+                        success: success,
+                        verb: statement.verb.id,
+                        objectName: statement.object.definition.name['en-US'] || 'Unknown H5P Activity'
+                    });
+                }
+            }
+        });
     </script>
-
 </body>
 </html>
